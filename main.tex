@@ -1,0 +1,247 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2019
+
+% ready for submission
+% \usepackage{neurips_2019}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+    % \usepackage[preprint]{neurips_2019}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+     \usepackage[final]{style}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2019}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{subcaption}    % for subfigure environment
+\usepackage{graphicx}       % for including graphics
+\usepackage{float}          % for [H] float placement
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\title{Robust Facial Emotion Recognition with Geometric Landmark Encoding and Continuous Facial Motions}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  Zhenghao Jin \\
+  ECE \\
+  \texttt{zhenghao@andrew.cmu.edu} \\
+  \And
+  Putian Wang \\
+  ECE \\
+  \texttt{putianw@andrew.cmu.edu} \\
+  \And
+  Veronica Zhao \\
+  ECE \\
+  \texttt{veronicz@andrew.cmu.edu} \\
+}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Facial emotion recognition (FER) is a critical technology for next-generation human-computer interaction, enabling applications from adaptive tutoring systems to driver safety monitoring. For these systems to be effective, their predictions must be accurate and stable and reliable over time. However, real-world conditions present significant challenges: faces are often partially occluded, with constant variations in pose and lighting. Furthermore, existing models struggle to generalize across different individuals and often fail to capture subtle, low-amplitude expressions.
+
+Although modern deep learning approaches have improved on the classical methods, they still have key limitations [3]. CNN-based models, though powerful, often produce unstable frame-by-frame predictions and perform poorly when faced with data from new subjects or environments. Sequence models like RNNs can improve temporal consistency but at a high computational cost, making them less suitable for real-time applications.
+
+Two primary gaps remain in current research: (1) inadequate adaptation to the unique facial morphology of each input, and (2) insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions. Our project directly addresses these gaps. We start with a naive initial experiment that utilizes only five landmarks and their relative distances to build a shallow Multi-Layer perception (MLP) to classify different facial emotions. Based on results of the initial experiment, we gained insight of how influential these landmarks could be in FER tasks. Then, we started our next-stage solution.
+
+Specifically, our next-stage solution begins with dataset reinforcement, followed by a critical phase of feature extraction. We apply standardizations and then synthesize the raw landmark features into highly informative geometric attributes. Once robust accuracy is achieved in single-frame FER, we fine-tune the model by incorporating a temporal layer to leverage short-term facial dynamics for enhanced real-time detection accuracy, aiming to create a more robust and reliable FER system for real-world applications.
+Here is our project Github repository link: \url{https://github.com/verozhao/subject-aware-temporal-FER}
+
+\section{Related Work}
+We adopted our baseline model from a previous study to ground our image-based expression recognition (FER) experiments. We will also adopt a video-based FER technique to further boost the performance of our model mentioned in another study.
+
+\subsection{Image-based FER on RAF-DB}
+For static images, we follow Stoychev and Gunes’ setup in The Effect of Model Compression on Fairness in Facial Expression Recognition and use their RAF-DB baseline [7]. The authors implemented a compact CNN classifier without architectural bells and whistles and then studied compression and fairness effects on top of this backbone. The model architecture has only basic layers, such as the convolutional layer, the pooling layers, and the dropout layers. We will reproduce this baseline and its train/validation protocol as our image classifier, treating the uncompressed model as our baseline model.
+
+\subsection{Video-based FER on DFEW and RAVDESS}
+For dynamic expressions, we will not adopt the DFEW paper’s models as baselines [6]. Instead, we will treat DFEW as a technical reference for accuracy-improving design choices. The DFEW work benchmarks spatiotemporal CNNs under a five-fold protocol (splits fd1–fd5) and evaluates with WAR and UAR. It further shows that an Expression-Clustered Spatiotemporal Feature Learning module (EC-STFL) improves both the C3D and 3D ResNet-18 baselines, with gains visible in class-wise recalls (e.g., happy, sad, neutral) and modest transfer benefits when pretraining in DFEW and fine-tuning on AFEW 7.0. In our study, we maintain our own video baselines and use DFEW insights, such as expression-sensitive feature clustering and spatio-temporal aggregation, as optional enhancements to improve recognition accuracy, rather than as baseline architectures or evaluation protocols. Meanwhile, we processed the RAVDESS dataset by slicing videos into frame sequences and formatting them to fine-tune our RNN/LSTM networks.
+
+\section{Methods}
+\subsection{Initial Experiment}
+Relating to our problem statement, we target two issues: (1) inadequate adaptation to the unique facial morphology of each input; (2) insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions.
+
+For the first issue, we hypothesize that incorporating relative distances among facial landmarks (L2 norms) as explicit features can improve the robustness to person-specific morphology. Because expressions are ultimately manifested by the geometric configuration of facial components, landmark locations and their pairwise distances form a direct, discriminative representation for FER.
+
+For the second issue, we note that single-image analysis lacks temporal context. The neutral face of a subject can resemble a mild smile in a single frame, leading to misclassification. With short sequences, frame-to-frame changes provide additional cues that help the model learn the neutral baseline of an individual and thus classify expressions more reliably.
+
+For our first experiment, we focus first on quantifying the determinative power of landmark-distance features in single-image FER.
+
+\subsubsection{Method Pipeline}
+For data engineering, first, we perform landmark extraction. We use the Python face alignment package to extract facial landmarks. To keep the model compact and efficient, we test five landmarks per face image. Second, we perform image-clarity stratification. We computed the Laplacian variance of each image and divided the dataset into three clarity levels with equal sample counts, ensuring a balanced distribution per clarity class. Third, we perform relabeling with metadata. For all training images, we augment the labels with the extracted landmarks and the assigned clarity level.
+
+Next step is modeling and training. For each clarity level, we train a separate MLP classifier on landmark-distance features. We perform cross-validation hyperparameter tuning, including optimizer selection and learning-rate tuning, to maximize validation accuracy.
+
+Last stage is model inference. Given a test image, our pipeline: extracts five landmarks using face-alignment; assigns a clarity level using the same Laplacian variance criterion as in training; routes the sample to the corresponding MLP for the final FER prediction.
+
+\subsubsection{Performance Compared to Baseline Method}
+We deployed and evaluated our image-based FER baseline. The training and validation losses on RAF-DB are shown in Figure 1. On the RAF-DB test set, this baseline achieves an accuracy of 82.46\%.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Figure1.png}
+    \caption{Train and validation loss of the baseline model for RAF-DB}
+\end{figure}
+
+We also evaluated our initial experiment's pipeline. Its training and validation losses on RAF-DB are shown in Figure 2, and the corresponding accuracies are shown in Figure 3. On the RAF-DB test set, the pipeline achieves an accuracy of 37.20\%.
+
+Overall, the initial experiment's pipeline underperforms the baseline model, which is expected: for this diagnostic study, we deliberately restrict the input to a single feature family, pairwise distances among only five facial landmarks, to probe the determinative power of landmark geometry in single-image FER. Despite this constraint, the observed accuracy is markedly higher than anticipated for such a compact representation, indicating that landmark geometry is indeed highly informative for expression recognition. These results provide a clear direction for our next-stage solution. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{loss_blurry.png}
+        \caption{Train-Val Loss (Blurry)}
+        \label{fig:loss_blurry}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{loss_medium_blurry.png}
+        \caption{Train-Val Loss (Mid Blurry)}
+        \label{fig:loss_medium_blurry}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{loss_not_blurry.png}
+        \caption{Train-Val Loss (Not Blurry)}
+        \label{fig:loss_not_blurry}
+    \end{subfigure}
+    \caption{Train-Val Loss for the Models}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{acc_blurry.png}
+        \caption{Accuracy (Blurry)}
+        \label{fig:acc_blurry}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{acc_medium_blurry.png}
+        \caption{Accuracy (Mid Blurry)}
+        \label{fig:acc_medium_blurry}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{acc_not_blurry.png}
+        \caption{Accuracy (Not Blurry)}
+        \label{fig:acc_not_blurry}
+    \end{subfigure}
+    \caption{Train-Val Accuracy for the Models}
+\end{figure}
+
+\subsection{Next-Stage Solution}
+
+
+
+
+
+
+
+\section{Results}
+\subsection{Initial Experiment}
+As shown in Figure 1, the baseline model on RAF-DB exhibits a stable convergence in the training split. Using accuracy as an evaluation metric, it reaches a test accuracy of 82.46\%. The qualitative results are provided in Figure 4.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{angry_bl.png}
+        \caption{Prediction: Angry}
+        \label{fig:angry_bl}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{disg_bl.png}
+        \caption{Prediction: Disgust}
+        \label{fig:disg_bl}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{happy_bl.png}
+        \caption{Prediction: Happy}
+        \label{fig:happy_bl}
+    \end{subfigure}
+    \caption{Sample Predictions from Baseline Model}
+\end{figure}
+
+As shown in Figure 3, our pipeline achieves an overall test accuracy of 37. 20\% on RAF-DB when aggregating predictions in the three clarity strata: blurry, moderately blurry and not blurry. In Figure 2, all three clarity-specific models demonstrate gradual convergence in their respective training subsets. Representative visual outputs for our pipeline are shown in Figure 5.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{angry_ml.png}
+        \caption{Prediction: Angry}
+        \label{fig:angry_ml}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{disg_ml.png}
+        \caption{Prediction: Disgust}
+        \label{fig:disg_ml}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\linewidth}
+        \includegraphics[width=\linewidth]{happy_ml.png}
+        \caption{Prediction: Happy}
+        \label{fig:happy_ml}
+    \end{subfigure}
+    \caption{Sample Predictions from Our Models}
+\end{figure}
+
+\subsection{Next-Stage Solution}
+
+
+
+
+
+
+\section{Discussion and Conclusion}
+\subsection{Initial Experiment}
+Efficiency and Latency. In our initial experiments, using only landmark-based features yields very low inference latency and high efficiency. The landmark extraction itself takes approximately 0.08 seconds per image, and the downstream classifier adds negligible overhead.
+
+Effectiveness of Landmarks. Although the landmark-only model underperforms the baseline in accuracy, it relies on only five landmarks. This result indicates that landmark geometry is highly determinative for FER and that there remains substantial headroom for improvement within a landmark-first design.
+
+Insight Gained. Increasing the number of extracted landmarks and replacing the landmark extractor with a lower-latency model should be our next move. Depending on forthcoming ablations, in our next-stage solution we need to de-prioritize integrating landmarks into the original baseline and instead pursue a landmark-only approach to achieve a high-efficiency, competitive sequential FER model.
+
+\subsection{Next-Stage Solution}
+
+
+
+
+
+
+\section*{References}
+
+\medskip
+
+\small
+
+[1] Li, S., Deng, W. and Du, J. (2017). Reliable Crowdsourcing and Deep Locality-Preserving Learning for Expression Recognition in the Wild. In {\it 2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pp. 2584--2593.
+
+[2] Goodfellow, I. J., Erhan, D., Carrier, P. L., Courville, A., Mirza, M., Hamner, B., ... \& Bengio, Y. (2013). Challenges in representation learning: A report on the ICML 2013 workshop. In {\it JMLR: Workshop and Conference Proceedings} (Vol. 27, pp. 1-10).
+
+[3] Ali, M. F., Khatun, M., \& Turzo, N. A. (2020). Facial emotion detection using neural network. {\it International Journal of Scientific \& Engineering Research}, 11(8), 1318--1325.
+
+[4] Prajapati, D. (2025). Balanced RAF-DB Dataset (75x75 grayscale). Kaggle. Retrieved from \url{https://www.kaggle.com/datasets/dollyprajapati182/balanced-raf-db-dataset-7575-grayscale}
+
+[5] Sun, K., et al. (2020). High-Resolution Representations for Labeling Pixels and Regions. In {\it Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, pp. 7907--7916.
+
+[6] Jiang, X., et al. (2020). DFEW: A Large-Scale Database for Recognizing Dynamic Facial Expressions in the Wild. arXiv preprint arXiv:2008.05924. Retrived from \url{https://dfew-dataset.github.io/download.html}
+
+[7] Stoychev, S.\ \& Gunes, H.\ (2023) The Effect of Model Compression on Fairness in Facial Expression Recognition. In J.-J.\ Rousseau \& B.\ Kapralos (eds.), {\it Pattern Recognition, Computer Vision, and Image Processing. ICPR 2022 International Workshops and Challenges: Montreal, QC, Canada, August 21–25, 2022, Proceedings, Part IV}.
+
+
+\end{document}
