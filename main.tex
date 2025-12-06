@@ -59,11 +59,11 @@
 \maketitle
 
 \section{Introduction}
-Facial emotion recognition (FER) is a critical technology for next-generation human-computer interaction, enabling applications from adaptive tutoring systems to driver safety monitoring. For these systems to be effective, their predictions must be accurate and stable and reliable over time. However, real-world conditions present significant challenges: faces are often partially occluded, with constant variations in pose and lighting. Furthermore, existing models struggle to generalize across different individuals and often fail to capture subtle, low-amplitude expressions.
+Facial Emotion Recognition (FER) is a critical technology for next-generation human-computer interaction, enabling applications from adaptive tutoring systems to driver safety monitoring. For these systems to be effective, their predictions must be accurate and stable and reliable over time. However, real-world conditions present significant challenges: faces are often partially occluded, with constant variations in pose and lighting. Furthermore, existing models struggle to generalize across different individuals and often fail to capture subtle, low-amplitude expressions.
 
-Although modern deep learning approaches have improved on the classical methods, they still have key limitations [3]. CNN-based models, though powerful, often produce unstable frame-by-frame predictions and perform poorly when faced with data from new subjects or environments. Sequence models like RNNs can improve temporal consistency but at a high computational cost, making them less suitable for real-time applications.
+Although modern deep learning approaches have improved on the classical methods, they still have key limitations \cite{3}. CNN-based models, though powerful, often produce unstable frame-by-frame predictions and perform poorly when faced with data from new subjects or environments. Sequence models like RNNs can improve temporal consistency but at a high computational cost, making them less suitable for real-time applications.
 
-Two primary gaps remain in current research: (1) inadequate adaptation to the unique facial morphology of each input, and (2) insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions. Our project directly addresses these gaps. We start with a naive initial experiment that utilizes only five landmarks and their relative distances to build a shallow Multi-Layer perception (MLP) to classify different facial emotions. Based on results of the initial experiment, we gained insight of how influential these landmarks could be in FER tasks. Then, we started our next-stage solution.
+Two primary gaps remain in current research: inadequate adaptation to the unique facial morphology of each input, and insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions. Our project directly addresses these gaps. We start with a naive initial experiment that utilizes only five landmarks and their relative distances to build a shallow Multi-Layer perception (MLP) to classify different facial emotions. Based on results of the initial experiment, we gained insight of how influential these landmarks could be in FER tasks. Then, we started our next-stage solution. 
 
 Specifically, our next-stage solution begins with dataset reinforcement, followed by a critical phase of feature extraction. We apply standardizations and then synthesize the raw landmark features into highly informative geometric attributes. Once robust accuracy is achieved in single-frame FER, we fine-tune the model by incorporating a temporal layer to leverage short-term facial dynamics for enhanced real-time detection accuracy, aiming to create a more robust and reliable FER system for real-world applications.
 Here is our project Github repository link: \url{https://github.com/verozhao/subject-aware-temporal-FER}
@@ -72,14 +72,14 @@ Here is our project Github repository link: \url{https://github.com/verozhao/sub
 We adopted our baseline model from a previous study to ground our image-based expression recognition (FER) experiments. We will also adopt a video-based FER technique to further boost the performance of our model mentioned in another study.
 
 \subsection{Image-based FER on RAF-DB}
-For static images, we follow Stoychev and Gunes’ setup in The Effect of Model Compression on Fairness in Facial Expression Recognition and use their RAF-DB baseline [7]. The authors implemented a compact CNN classifier without architectural bells and whistles and then studied compression and fairness effects on top of this backbone. The model architecture has only basic layers, such as the convolutional layer, the pooling layers, and the dropout layers. We will reproduce this baseline and its train/validation protocol as our image classifier, treating the uncompressed model as our baseline model.
+For static images, we follow Stoychev and Gunes’ setup in The Effect of Model Compression on Fairness in Facial Expression Recognition and use their RAF-DB baseline \cite{7}. The authors implemented a compact CNN classifier without architectural bells and whistles and then studied compression and fairness effects on top of this backbone. The model architecture has only basic layers, such as the convolutional layer, the pooling layers, and the dropout layers. We will reproduce this baseline and its train/validation protocol as our image classifier, treating the uncompressed model as our baseline model.
 
 \subsubsection{Video-based FER on DFEW and RAVDESS}
-For dynamic expressions, we will not adopt the DFEW paper’s models as baselines [6]. Instead, we will treat DFEW as a technical reference for accuracy-improving design choices. The DFEW work benchmarks spatiotemporal CNNs under a five-fold protocol (splits fd1–fd5) and evaluates with WAR and UAR. It further shows that an Expression-Clustered Spatiotemporal Feature Learning module (EC-STFL) improves both the C3D and 3D ResNet-18 baselines, with gains visible in class-wise recalls (e.g., happy, sad, neutral) and modest transfer benefits when pretraining in DFEW and fine-tuning on AFEW 7.0. In our study, we maintain our own video baselines and use DFEW insights, such as expression-sensitive feature clustering and spatio-temporal aggregation, as optional enhancements to improve recognition accuracy, rather than as baseline architectures or evaluation protocols. Meanwhile, we processed the RAVDESS dataset by slicing videos into frame sequences and formatting them to fine-tune our RNN/LSTM networks.
+For dynamic expressions, we will not adopt the DFEW paper’s models as baselines \cite{6}. Instead, we will treat DFEW as a technical reference for accuracy-improving design choices. The DFEW work benchmarks spatiotemporal CNNs under a five-fold protocol (splits fd1–fd5) and evaluates with WAR and UAR. It further shows that an Expression-Clustered Spatiotemporal Feature Learning module (EC-STFL) improves both the C3D and 3D ResNet-18 baselines, with gains visible in class-wise recalls (e.g., happy, sad, neutral) and modest transfer benefits when pretraining in DFEW and fine-tuning on AFEW 7.0. In our study, we maintain our own video baselines and use DFEW insights, such as expression-sensitive feature clustering and spatio-temporal aggregation, as optional enhancements to improve recognition accuracy, rather than as baseline architectures or evaluation protocols. Meanwhile, we processed the RAVDESS dataset \cite{8} by slicing videos into frame sequences and formatting them to fine-tune our RNN/LSTM networks.
 
 \section{Methods}
 \subsection{Initial Experiment}
-Relating to our problem statement, we target two issues: (1) inadequate adaptation to the unique facial morphology of each input; (2) insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions.
+Relating to our problem statement, we target two issues: inadequate adaptation to the unique facial morphology of each input; insufficient use of short-term facial dynamics, which are crucial for distinguishing near-neutral expressions.
 
 For the first issue, we hypothesize that incorporating relative distances among facial landmarks (L2 norms) as explicit features can improve the robustness to person-specific morphology. Because expressions are ultimately manifested by the geometric configuration of facial components, landmark locations and their pairwise distances form a direct, discriminative representation for FER.
 
@@ -162,7 +162,7 @@ First, we perform data augmentation on the RAF-DB facial image dataset. We desig
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{faceid_loss_plot.png}
+    \includegraphics[width=1\linewidth]{faceid_loss_plot.png}
     \caption{FaceID-GAN Model Training Loss Plot}
 \end{figure}
 
@@ -174,7 +174,7 @@ First, we perform data augmentation on the RAF-DB facial image dataset. We desig
     \caption{Facial Geometric Features Extraction Flow Chart}
 \end{figure}
 
-We utilized a pre-trained MediaPipe face landmark model to extract the 3D coordinates (x, y, z) of 478 landmarks from the human face. From this comprehensive set, we selected 21 landmarks identified as most critical. Following a standardization process, we perform geometric feature extraction to synthesize these points into 125 highly discriminative geometric attributes. These 125 attributes are categorized into five distinct groups: \textbf{key coordinates} (3D positions of the eyes, nose, mouth, eyebrows, and chin), \textbf{distances} (facial dimensions between landmark pairs, e.g., eye width/height), \textbf{angles} (facial geometry derived from landmark triplets, e.g., eye-bridge angle and mouth angle), \textbf{geometric ratios} (proportional relationships, e.g., eye openness), and \textbf{regional statistics} (metrics including spread, aspect ratio, and centroid positions across nine facial regions covering the eyes, eyebrows, nose, lips, and jaw). Importantly, because these attributes are derived from 3D landmark coordinates, they exhibit inherent robustness to variations in scale and pose after standardizations and geometric feature engineering. Specifically, even when the subject's face is oriented laterally or in a non-frontal pose, the 125 geometric features derived from these 21 key 3D coordinates remain consistent and standardized, ensuring pose invariance. The complete flowchart of our Facial Geometric Features Extraction process is presented in Figure 6.
+We utilized a pre-trained MediaPipe face landmark model \cite{9} to extract the 3D coordinates (x, y, z) of 478 landmarks from the human face. From this comprehensive set, we selected 21 landmarks identified as most critical. Following a standardization process, we perform geometric feature extraction to synthesize these points into 125 highly discriminative geometric attributes. These 125 attributes are categorized into five distinct groups: \textbf{key coordinates} (3D positions of the eyes, nose, mouth, eyebrows, and chin), \textbf{distances} (facial dimensions between landmark pairs, e.g., eye width/height), \textbf{angles} (facial geometry derived from landmark triplets, e.g., eye-bridge angle and mouth angle), \textbf{geometric ratios} (proportional relationships, e.g., eye openness), and \textbf{regional statistics} (metrics including spread, aspect ratio, and centroid positions across nine facial regions covering the eyes, eyebrows, nose, lips, and jaw). Importantly, because these attributes are derived from 3D landmark coordinates, they exhibit inherent robustness to variations in scale and pose after standardizations and geometric feature engineering. Specifically, even when the subject's face is oriented laterally or in a non-frontal pose, the 125 geometric features derived from these 21 key 3D coordinates remain consistent and standardized, ensuring pose invariance. The complete flowchart of our Facial Geometric Features Extraction process is presented in Figure 6.
 
 \subsubsection{ResNet-Like Model for Single-Image FER}
 
@@ -207,7 +207,7 @@ Following the extraction of the 125 geometric facial attributes, we designed a c
     \caption{Sequential-Image FER RNN Model Architecture}
 \end{figure}
 
-In the previous step, upon achieving a robust single-frame FER model, we effectively established a sophisticated facial geometric feature encoder (hidden layers). To fully leverage this encoder, we initialized our sequential model by loading the pre-trained single-image FER network. Specifically, we removed the final classifier layer while retaining all hidden layers, as they are capable of extracting rich facial information from individual frames. We then introduced an LSTM layer to allow the model to integrate temporal context from the last 10 frames (sequence length = 10) for a complete facial emotion analysis within video or streaming inputs. Finally, two fully connected layers were added to the architecture. The structure of our Sequential-Image FER RNN model is illustrated in Figure 9. Subsequently, we trained this RNN model using the RAVDESS video dataset. Given that our geometric feature encoder (the retained hidden layers) had already demonstrated excellent performance in single-frame FER tasks, we applied a very small learning rate to these layers during training, rather than freezing their parameters entirely. After training and hyperparameter tuning, our model achieved an exceptional accuracy of 97.85\% on the RAVDESS test set. The detailed training performance of the model is shown in Figure 10. This trained RNN model demonstrates high efficiency and accuracy in analyzing human facial emotions during real-time streaming.
+In the previous step, upon achieving a robust single-frame FER model, we effectively established a sophisticated facial geometric feature encoder (hidden layers). To fully leverage this encoder, we initialized our sequential model by loading the pre-trained single-image FER network. Specifically, we removed the final classifier layer while retaining all hidden layers, as they are capable of extracting rich facial information from individual frames. We then introduced an LSTM layer to allow the model to integrate temporal context from the last 10 frames (sequence length = 10) for a complete facial emotion analysis within video or streaming inputs. Finally, two fully connected layers were added to the architecture. The structure of our Sequential-Image FER RNN model is illustrated in Figure 9. Subsequently, we trained this RNN model using the RAVDESS video dataset \cite{8}. Given that our geometric feature encoder (the retained hidden layers) had already demonstrated excellent performance in single-frame FER tasks, we applied a very small learning rate to these layers during training, rather than freezing their parameters entirely. After training and hyperparameter tuning, our model achieved an exceptional accuracy of 97.85\% on the RAVDESS test set \cite{8}. The detailed training performance of the model is shown in Figure 10. This trained RNN model demonstrates high efficiency and accuracy in analyzing human facial emotions during real-time streaming.
 
 \begin{figure}[H]
     \centering
@@ -278,7 +278,7 @@ As shown in Figure 3, our pipeline achieves an overall test accuracy of 37. 20\%
 \end{figure}
 
 \subsubsection{Data Augmentation: FaceID-GAN}
-We applied our pre-trained FaceID-GAN model to the RAF-DB image dataset to perform data augmentation. Specifically, for each original image, the generator synthesized five additional 'fake' images, as illustrated in Figure 14. This strategy expanded the volume of our training data by a factor of five. By introducing increased noise and randomness into the training set, this approach significantly enhances the generalization ability of the trained models.
+We applied our pre-trained FaceID-GAN model to the RAF-DB image dataset to perform data augmentation. Specifically, for each original image, the generator generated five additional "fake" images, as illustrated in Figure 14. This strategy expanded the volume of our training data by a factor of five. By introducing increased noise and randomness into the training set, this approach significantly enhances the generalization ability of the trained models.
 
 \begin{figure}[H]
     \centering
@@ -301,7 +301,7 @@ We applied our pre-trained FaceID-GAN model to the RAF-DB image dataset to perfo
 \end{figure}
 
 \subsubsection{Facial Geometric Features Extraction}
-For all input data, encompassing both single images and video/streaming feeds, we initially employ the Facial Geometric Features Extraction module to process the raw inputs into 125-dimensional geometric feature vectors. This module has proven highly effective in achieving lightweight extraction of critical information from diverse input sources. As the core feature extraction component, it establishes the foundation on which the performance of all our models are based. An example of the output generated by the MediaPipe landmarks extraction model within this module is illustrated in Figure 15.
+For all input data, encompassing both single images and video/streaming feeds, we initially employ the Facial Geometric Features Extraction module to process the raw inputs into 125-dimensional geometric feature vectors. This module has proven highly effective in achieving lightweight extraction of critical information from diverse input sources. As the core feature extraction component, it establishes the foundation on which the performance of all our models are based. An example of the output generated by the MediaPipe landmarks extraction model \cite{9} within this module is illustrated in Figure 15.
 
 \begin{figure}[H]
     \centering
@@ -320,7 +320,7 @@ For all input data, encompassing both single images and video/streaming feeds, w
 Following the model training pipeline depicted in Figure 13(a), we train the single-image FER model on image dataset. As illustrated in Figure 8, the training loss curve exhibited a gradual decline, ultimately achieving excellent convergence while stabilizing at a level slightly higher than the validation loss curve. This behavior indicates that the model has effectively learned from the dataset, a conclusion further supported by the final test accuracy of 84.55\%, which outperforms the 82.46\% test accuracy achieved by our baseline model from paper. 
 
 \subsubsection{Fine-tune Model for Sequential-Image FER}
-Following the model training pipeline outlined in Figure 13(b), we trained the sequential-image FER model using the video dataset. As demonstrated in Figure 10, the training loss curve showed a steady decline, ultimately converging perfectly and aligning with the validation loss curve. We achieved a final accuracy of 97.85\% on the video dataset's test set. Furthermore, utilizing the model inferencing pipeline outlined in Figure 13(c), we successfully executed real-time FER tasks by feeding streaming data from a live camera into our trained sequential-image FER RNN model. An example screenshot demonstrating this real-time sequential-image FER application is presented in Figure 16. The red dots represent the target landmarks and the green dots represent the unused landmarks.
+Following the model training pipeline outlined in Figure 13(b), we trained the sequential-image FER model using the video dataset. As demonstrated in Figure 10, the training loss curve showed a steady decline, ultimately converging perfectly and aligning with the validation loss curve. We achieved a final accuracy of 97.85\% on the video dataset's test set. Furthermore, utilizing the model inferencing pipeline outlined in Figure 13(c), we successfully executed real-time FER tasks by feeding streaming data from a live camera into our trained sequential-image FER RNN model. An example screenshot demonstrating the real-time sequential-image FER application is presented in Figure 16. The red dots represent the target landmarks and the green dots represent the unused landmarks.
 
 \begin{figure}[H]
     \centering
@@ -338,10 +338,10 @@ Despite a gap in performance, the geometric data proved to be a powerful feature
 These findings clarify the necessary direction for our future technical strategy. Increasing the number of extracted landmarks and replacing the landmark extractor with a lower-latency model should be our next move. Depending on forthcoming ablations, in our next-stage solution we need to de-prioritize integrating landmarks into the original baseline and instead pursue a landmark-only approach to achieve a high-efficiency, competitive sequential FER model.
 
 \subsection{Current Limitations}
-Despite the improved accuracy of our next-stage system, our current demo exhibits a strong bias toward predicting happy and angry emotions. In the learned geometric feature space, many other expressions lie close to these two extremes, so the model usually tends to have higher confidence level on happy or angry rather than more subtle classes. In addition, our training datasets are collected from professional actors under fixed lighting conditions, where emotions are portrayed in an exaggerated, highly distinguishable manner. This distribution shift makes it harder for the model to detect low-amplitude, everyday emotions in real users, especially in more challenging real-world environments.
+Despite the improved accuracy of our next-stage solution, our current demo exhibits a strong bias toward predicting "happy" and "angry" emotions. In the learned geometric feature space, many other expressions lie close to these two extremes, so the model usually tends to have higher confidence level on "happy" or "angry" rather than more subtle classes. In addition, our training datasets are collected from professional actors under fixed lighting conditions, where emotions are portrayed in an exaggerated, highly distinguishable manner. This distribution shift makes it harder for the model to detect low-amplitude, everyday emotions in real users, especially in more challenging real-world environments.
 
 \subsection{Future Work}
-One key direction is to train on more comprehensive and diverse video datasets for facial emotion recognition. Existing benchmarks are limited in both the range of emotions and the variability of subjects, lighting, and recording conditions, which constrains the model’s ability to generalize to in-the-wild data. Curating or adopting larger, more diverse datasets—especially those featuring non-actors and more naturalistic expressions—could significantly improve robustness. In addition, our current model tends to be over-confident on happy and angry due to their extreme positions in feature space. As for future work, normalization strategies (e.g., calibrated confidence scaling or feature-space normalization) may be helpful to mitigate this bias, reduce over-confidence on extreme emotions, and encourage more balanced predictions across all classes.
+One key direction is to train on more comprehensive and diverse video datasets for facial emotion recognition. Existing benchmarks are limited in both the range of emotions and the variability of subjects, lighting, and recording conditions, which constrains the model’s ability to generalize to in-the-wild data. Curating or adopting larger, more diverse datasets—especially those featuring non-actors and more naturalistic expressions—could significantly improve robustness. In addition, our current model tends to be over-confident on "happy" and "angry" due to their extreme positions in feature space. As for future work, normalization strategies (e.g., calibrated confidence scaling or feature-space normalization) may be helpful to mitigate this bias, reduce over-confidence on extreme emotions, and encourage more balanced predictions across all classes.
 
 
 
@@ -355,31 +355,31 @@ One key direction is to train on more comprehensive and diverse video datasets f
 
 \begin{thebibliography}{9}
 
-\bibitem{li2017}
+\bibitem{1}
 S. Li, W. Deng, and J. Du, ``Reliable crowdsourcing and deep locality-preserving learning for expression recognition in the wild,'' in \textit{Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR)}, Honolulu, HI, USA, 2017, pp. 2584--2593.
 
-\bibitem{goodfellow2013}
+\bibitem{2}
 I. J. Goodfellow, D. Erhan, P. L. Carrier, A. Courville, M. Mirza, B. Hamner, and Y. Bengio, ``Challenges in representation learning: A report on three machine learning contests,'' in \textit{Proc. ICML Workshop Challenges Represent. Learn.}, Atlanta, GA, USA, 2013, pp. 1--10.
 
-\bibitem{ali2020}
+\bibitem{3}
 M. F. Ali, M. Khatun, and N. A. Turzo, ``Facial emotion detection using neural network,'' \textit{Int. J. Sci. Eng. Res.}, vol. 11, no. 8, pp. 1318--1325, Aug. 2020.
 
-\bibitem{prajapati2025}
+\bibitem{4}
 D. Prajapati, ``Balanced RAF-DB dataset (75x75 grayscale),'' Kaggle, 2025. [Online]. Available: \url{https://www.kaggle.com/datasets/dollyprajapati182/balanced-raf-db-dataset-7575-grayscale}
 
-\bibitem{sun2020}
+\bibitem{5}
 K. Sun \textit{et al.}, ``High-resolution representations for labeling pixels and regions,'' in \textit{Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR)}, Seattle, WA, USA, 2020, pp. 7907--7916.
 
-\bibitem{jiang2020}
+\bibitem{6}
 X. Jiang \textit{et al.}, ``DFEW: A large-scale database for recognizing dynamic facial expressions in the wild,'' arXiv preprint arXiv:2008.05924, 2020. [Online]. Available: \url{https://dfew-dataset.github.io/download.html}
 
-\bibitem{stoychev2023}
+\bibitem{7}
 S. Stoychev and H. Gunes, ``The effect of model compression on fairness in facial expression recognition,'' in \textit{Pattern Recognition, Computer Vision, and Image Processing. ICPR 2022 Int. Workshops and Challenges}, Montreal, QC, Canada, 2022.
 
-\bibitem{livingstone2018}
+\bibitem{8}
 S. R. Livingstone and F. A. Russo, ``The Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS),'' \textit{PLoS ONE}, vol. 13, no. 5, p. e0196391, May 2018, doi: 10.5281/zenodo.1188976.
 
-\bibitem{lugaresi2019}
+\bibitem{9}
 C. Lugaresi \textit{et al.}, ``MediaPipe: A framework for building perception pipelines,'' arXiv preprint arXiv:1906.08172, 2019. [Online]. Available: \url{https://arxiv.org/abs/1906.08172}
 
 \end{thebibliography}
